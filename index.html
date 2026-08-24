@@ -242,6 +242,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .side-choices{display:flex;gap:14px;flex-wrap:wrap}
 .side-choices label{display:inline-flex;align-items:center;gap:6px;margin:0;font-size:13px}
 .side-choices input{accent-color:var(--accent)}
+.check-row{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:#d9e2eb}
+.check-row input{accent-color:var(--accent)}
 .shot-picker{
   border:1px solid var(--line);background:#0f141c;border-radius:10px;padding:10px;
   display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;max-height:240px;overflow:auto
@@ -268,34 +270,36 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .media-score-card.bad-img .image-fallback{display:grid}
 .media-score-card.bad-img img.main-image{display:none}
 .media-score-card .score-panel{
-  position:absolute;top:0;bottom:0;width:calc(var(--card-w) * 0.30);display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:calc(var(--card-w) * 0.018);padding:calc(var(--card-w) * 0.032);
-  background:linear-gradient(90deg, rgba(0,0,0,.76), rgba(0,0,0,.48) 58%, rgba(0,0,0,0));text-align:center
+  position:absolute;top:calc(var(--panel-top, 50) * 1%);width:calc(var(--card-w) * 0.48 * var(--panel-scale, 1));display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:calc(var(--card-w) * 0.024 * var(--panel-scale, 1));padding:calc(var(--card-w) * 0.034 * var(--panel-scale, 1));
+  text-align:center;transform:translateY(-50%);border-radius:calc(var(--card-w) * 0.026);
+  background:linear-gradient(180deg, rgba(0,0,0,.42), rgba(0,0,0,.24));backdrop-filter:blur(1.5px)
 }
-.media-score-card.side-right .score-panel{right:0;left:auto;background:linear-gradient(270deg, rgba(0,0,0,.76), rgba(0,0,0,.48) 58%, rgba(0,0,0,0))}
-.media-score-card.side-left .score-panel{left:0}
+.media-score-card.side-right .score-panel{right:calc(var(--card-w) * var(--panel-inset, 0.04));left:auto}
+.media-score-card.side-left .score-panel{left:calc(var(--card-w) * var(--panel-inset, 0.04))}
 .media-score-card .score-badge{
   background:#e01922;color:white;display:grid;place-items:center;font-weight:900;line-height:1;
-  clip-path:polygon(25% 6%,75% 6%,100% 50%,75% 94%,25% 94%,0 50%);
+  clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
   text-shadow:0 2px 6px rgba(0,0,0,.3);box-shadow:0 10px 25px rgba(224,25,34,.35)
 }
-.media-score-card.size-max .score-badge{width:calc(var(--card-w) * 0.19);height:calc(var(--card-w) * 0.17);font-size:calc(var(--card-w) * 0.068)}
-.media-score-card.size-large .score-badge{width:calc(var(--card-w) * 0.165);height:calc(var(--card-w) * 0.147);font-size:calc(var(--card-w) * 0.058)}
-.media-score-card.size-medium .score-badge{width:calc(var(--card-w) * 0.145);height:calc(var(--card-w) * 0.129);font-size:calc(var(--card-w) * 0.052)}
-.media-score-card.size-small .score-badge{width:calc(var(--card-w) * 0.128);height:calc(var(--card-w) * 0.114);font-size:calc(var(--card-w) * 0.046)}
+.media-score-card .score-badge svg{
+  width:100%;height:100%;display:block;
+  filter:drop-shadow(0 10px 25px rgba(224,25,34,.35));
+}
+
+.media-score-card.size-max .score-badge{width:calc(var(--card-w) * 0.30 * var(--panel-scale, 1));height:calc(var(--card-w) * 0.345 * var(--panel-scale, 1));font-size:calc(var(--card-w) * 0.102 * var(--panel-scale, 1))}
+.media-score-card.size-large .score-badge{width:calc(var(--card-w) * 0.27 * var(--panel-scale, 1));height:calc(var(--card-w) * 0.31 * var(--panel-scale, 1));font-size:calc(var(--card-w) * 0.092 * var(--panel-scale, 1))}
+.media-score-card.size-medium .score-badge{width:calc(var(--card-w) * 0.24 * var(--panel-scale, 1));height:calc(var(--card-w) * 0.276 * var(--panel-scale, 1));font-size:calc(var(--card-w) * 0.082 * var(--panel-scale, 1))}
+.media-score-card.size-small .score-badge{width:calc(var(--card-w) * 0.21 * var(--panel-scale, 1));height:calc(var(--card-w) * 0.241 * var(--panel-scale, 1));font-size:calc(var(--card-w) * 0.072 * var(--panel-scale, 1))}
 .media-score-card .score-review{
-  color:white;font-weight:800;line-height:1.22;max-width:100%;font-size:calc(var(--card-w) * 0.023);
+  color:white;font-weight:800;line-height:1.2;max-width:100%;font-size:calc(var(--card-w) * 0.030 * var(--panel-scale, 1));
   text-shadow:0 3px 10px rgba(0,0,0,.5);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden
 }
 .media-score-card.size-max .score-review{display:none}
 .media-score-card .title-bar{
-  position:absolute;left:0;right:0;bottom:0;padding:calc(var(--card-w) * 0.042) calc(var(--card-w) * 0.03) calc(var(--card-w) * 0.02);
-  font-size:calc(var(--card-w) * 0.033);font-weight:900;letter-spacing:.3px;color:white;
-  background:linear-gradient(transparent,rgba(0,0,0,.84));text-shadow:0 2px 8px rgba(0,0,0,.5)
-}
-.media-score-card .title-bar small{
-  display:block;margin-top:calc(var(--card-w) * 0.005);font-size:calc(var(--card-w) * 0.0135);font-weight:650;
-  color:rgba(255,255,255,.78)
+  position:absolute;left:0;right:0;bottom:0;padding:calc(var(--card-w) * 0.016) calc(var(--card-w) * 0.03);
+  font-size:calc(var(--card-w) * 0.034);font-weight:900;line-height:1.2;color:white;background:#d71f27;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:none
 }
 
 @media (max-width:720px){
@@ -388,7 +392,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
     <div class="modal-head">
       <div>
         <div class="modal-title" id="scoreModalTitle">评分封面</div>
-        <div class="modal-sub">输入 0~10 整数分数，短评可选；评语越长，六边形会越小</div>
+        <div class="modal-sub">输入 0~10 整数分数，可调大小、位置与标题显示；评语越长，六边形会越小</div>
       </div>
       <button class="modal-close" id="scoreModalClose" title="关闭">×</button>
     </div>
@@ -410,6 +414,24 @@ button:disabled{opacity:.45;cursor:not-allowed}
             <label><input type="radio" name="scoreSide" value="left"> 左侧</label>
             <label><input type="radio" name="scoreSide" value="right"> 右侧</label>
           </div>
+        </div>
+        <div class="form-group">
+          <label for="panelScaleInput">评分模块大小</label>
+          <input id="panelScaleInput" type="range" min="60" max="160" step="5" value="100" />
+          <div class="form-help">当前：<span id="panelScaleValue">100%</span></div>
+        </div>
+        <div class="form-group">
+          <label for="panelTopInput">评分模块垂直位置</label>
+          <input id="panelTopInput" type="range" min="18" max="82" step="1" value="50" />
+          <div class="form-help">当前：<span id="panelTopValue">50%</span></div>
+        </div>
+        <div class="form-group">
+          <label for="panelInsetInput">评分模块距边缘</label>
+          <input id="panelInsetInput" type="range" min="0" max="12" step="1" value="4" />
+          <div class="form-help">当前：<span id="panelInsetValue">4%</span></div>
+        </div>
+        <div class="form-group">
+          <label class="check-row"><input type="checkbox" id="showTitleToggle" checked> 显示游戏名和红色背景条</label>
         </div>
         <div class="form-group">
           <label>封面图片</label>
@@ -891,7 +913,11 @@ button:disabled{opacity:.45;cursor:not-allowed}
           reviewText: "",
           scoreSide: "right",
           heroImage: "",
-          screenshotOptions: []
+          screenshotOptions: [],
+          panelScale: 100,
+          panelTop: 50,
+          panelInset: 4,
+          showTitle: true
         };
         state.unranked.push(String(item.id));
         saveState();
@@ -1270,6 +1296,9 @@ button:disabled{opacity:.45;cursor:not-allowed}
     const sizeCls = getScoreSizeClass(temp.reviewText);
     root.className = `media-score-card side-${side} ${sizeCls}`;
     root.style.setProperty("--card-w", widthPx + "px");
+    root.style.setProperty("--panel-scale", String((Number(temp.panelScale ?? 100) || 100) / 100));
+    root.style.setProperty("--panel-top", String(Number(temp.panelTop ?? 50) || 50));
+    root.style.setProperty("--panel-inset", String((Number(temp.panelInset ?? 4) || 0) / 100));
 
     const img = document.createElement("img");
     img.className = "main-image";
@@ -1288,7 +1317,12 @@ button:disabled{opacity:.45;cursor:not-allowed}
 
     const badge = document.createElement("div");
     badge.className = "score-badge";
-    badge.textContent = temp.score === null || temp.score === "" ? "?" : String(temp.score);
+    badge.innerHTML = `
+      <svg viewBox="0 0 100 116" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="50,2 94,27 94,89 50,114 6,89 6,27" fill="#e01922"/>
+        <text x="50" y="72" text-anchor="middle" fill="white" font-size="48" font-weight="900" font-family="Arial, sans-serif">${temp.score === null || temp.score === "" ? "?" : String(temp.score)}</text>
+      </svg>
+    `;
 
     panel.append(badge);
     if (String(temp.reviewText || "").trim()) {
@@ -1298,11 +1332,13 @@ button:disabled{opacity:.45;cursor:not-allowed}
       panel.append(review);
     }
 
-    const title = document.createElement("div");
-    title.className = "title-bar";
-    title.innerHTML = `${escapeHtml(game.name || "未命名游戏")}<small>Steam AppID: ${escapeHtml(game.appId)}</small>`;
-
-    root.append(img, fallback, panel, title);
+    root.append(img, fallback, panel);
+    if (temp.showTitle !== false) {
+      const title = document.createElement("div");
+      title.className = "title-bar";
+      title.textContent = game.name || "未命名游戏";
+      root.append(title);
+    }
     return root;
   }
 
@@ -1314,6 +1350,13 @@ button:disabled{opacity:.45;cursor:not-allowed}
     if (!game) return;
     wrap.append(createScoreCardElement(game, scoreModalTemp, 560));
   }
+
+  function updateControlValueLabels() {
+    $("#panelScaleValue").textContent = `${scoreModalTemp ? scoreModalTemp.panelScale : $("#panelScaleInput").value}%`;
+    $("#panelTopValue").textContent = `${scoreModalTemp ? scoreModalTemp.panelTop : $("#panelTopInput").value}%`;
+    $("#panelInsetValue").textContent = `${scoreModalTemp ? scoreModalTemp.panelInset : $("#panelInsetInput").value}%`;
+  }
+
 
   function renderShotPicker() {
     const picker = $("#shotPicker");
@@ -1385,16 +1428,25 @@ button:disabled{opacity:.45;cursor:not-allowed}
       score: Number.isInteger(game.score) ? game.score : null,
       reviewText: String(game.reviewText || ""),
       scoreSide: game.scoreSide === "left" ? "left" : "right",
-      heroImage: game.heroImage || game.image || ""
+      heroImage: game.heroImage || game.image || "",
+      panelScale: Number(game.panelScale ?? 100) || 100,
+      panelTop: Number(game.panelTop ?? 50) || 50,
+      panelInset: Number(game.panelInset ?? 4) || 4,
+      showTitle: game.showTitle !== false
     };
 
     $("#scoreModalTitle").textContent = "评分封面 · " + game.name;
     $("#scoreInput").value = scoreModalTemp.score === null ? "" : String(scoreModalTemp.score);
     $("#reviewInput").value = scoreModalTemp.reviewText;
+    $("#panelScaleInput").value = String(scoreModalTemp.panelScale);
+    $("#panelTopInput").value = String(scoreModalTemp.panelTop);
+    $("#panelInsetInput").value = String(scoreModalTemp.panelInset);
+    $("#showTitleToggle").checked = scoreModalTemp.showTitle;
     document.querySelectorAll('input[name="scoreSide"]').forEach(r => { r.checked = r.value === scoreModalTemp.scoreSide; });
     $("#shotStatus").textContent = "当前默认使用所选图片。需要更多图时可加载 Steam 宣传图。";
 
     renderShotPicker();
+    updateControlValueLabels();
     updateScorePreview();
 
     $("#scoreModal").classList.remove("hidden");
@@ -1413,8 +1465,13 @@ button:disabled{opacity:.45;cursor:not-allowed}
     const raw = $("#scoreInput").value.trim();
     scoreModalTemp.score = raw === "" ? null : Number(raw);
     scoreModalTemp.reviewText = $("#reviewInput").value;
+    scoreModalTemp.panelScale = Number($("#panelScaleInput").value) || 100;
+    scoreModalTemp.panelTop = Number($("#panelTopInput").value) || 50;
+    scoreModalTemp.panelInset = Number($("#panelInsetInput").value) || 0;
+    scoreModalTemp.showTitle = $("#showTitleToggle").checked;
     const checked = document.querySelector('input[name="scoreSide"]:checked');
     scoreModalTemp.scoreSide = checked ? checked.value : "right";
+    updateControlValueLabels();
   }
 
   function persistScoreModal() {
@@ -1425,6 +1482,10 @@ button:disabled{opacity:.45;cursor:not-allowed}
     game.reviewText = String(scoreModalTemp.reviewText || "");
     game.scoreSide = scoreModalTemp.scoreSide === "left" ? "left" : "right";
     game.heroImage = scoreModalTemp.heroImage || game.image || "";
+    game.panelScale = Number(scoreModalTemp.panelScale) || 100;
+    game.panelTop = Number(scoreModalTemp.panelTop) || 50;
+    game.panelInset = Number(scoreModalTemp.panelInset) || 0;
+    game.showTitle = scoreModalTemp.showTitle !== false;
     saveState();
   }
 
@@ -1442,6 +1503,10 @@ button:disabled{opacity:.45;cursor:not-allowed}
   $("#scoreModal").addEventListener("click", e => { if (e.target.id === "scoreModal") closeScoreModal(); });
   $("#scoreInput").addEventListener("input", () => { syncScoreTempFromForm(); updateScorePreview(); });
   $("#reviewInput").addEventListener("input", () => { syncScoreTempFromForm(); updateScorePreview(); });
+  $("#panelScaleInput").addEventListener("input", () => { syncScoreTempFromForm(); updateScorePreview(); });
+  $("#panelTopInput").addEventListener("input", () => { syncScoreTempFromForm(); updateScorePreview(); });
+  $("#panelInsetInput").addEventListener("input", () => { syncScoreTempFromForm(); updateScorePreview(); });
+  $("#showTitleToggle").addEventListener("change", () => { syncScoreTempFromForm(); updateScorePreview(); });
   document.querySelectorAll('input[name="scoreSide"]').forEach(r => r.addEventListener("change", () => { syncScoreTempFromForm(); updateScorePreview(); }));
 
   $("#useCurrentImageBtn").addEventListener("click", () => {
