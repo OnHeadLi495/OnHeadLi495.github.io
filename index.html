@@ -285,10 +285,10 @@ button:disabled{opacity:.45;cursor:not-allowed}
   filter:drop-shadow(0 10px 25px rgba(224,25,34,.35));
 }
 
-.media-score-card.size-max .score-badge{width:calc(var(--card-w) * 0.30 * var(--panel-scale, 1));height:calc(var(--card-w) * 0.345 * var(--panel-scale, 1));font-size:calc(var(--card-w) * 0.102 * var(--panel-scale, 1))}
-.media-score-card.size-large .score-badge{width:calc(var(--card-w) * 0.27 * var(--panel-scale, 1));height:calc(var(--card-w) * 0.31 * var(--panel-scale, 1));font-size:calc(var(--card-w) * 0.092 * var(--panel-scale, 1))}
-.media-score-card.size-medium .score-badge{width:calc(var(--card-w) * 0.24 * var(--panel-scale, 1));height:calc(var(--card-w) * 0.276 * var(--panel-scale, 1));font-size:calc(var(--card-w) * 0.082 * var(--panel-scale, 1))}
-.media-score-card.size-small .score-badge{width:calc(var(--card-w) * 0.21 * var(--panel-scale, 1));height:calc(var(--card-w) * 0.241 * var(--panel-scale, 1));font-size:calc(var(--card-w) * 0.072 * var(--panel-scale, 1))}
+.media-score-card.size-max .score-badge{width:calc(var(--card-w) * 0.299 * var(--panel-scale, 1));height:calc(var(--card-w) * 0.345 * var(--panel-scale, 1));font-size:calc(var(--card-w) * 0.102 * var(--panel-scale, 1))}
+.media-score-card.size-large .score-badge{width:calc(var(--card-w) * 0.2685 * var(--panel-scale, 1));height:calc(var(--card-w) * 0.31 * var(--panel-scale, 1));font-size:calc(var(--card-w) * 0.092 * var(--panel-scale, 1))}
+.media-score-card.size-medium .score-badge{width:calc(var(--card-w) * 0.239 * var(--panel-scale, 1));height:calc(var(--card-w) * 0.276 * var(--panel-scale, 1));font-size:calc(var(--card-w) * 0.082 * var(--panel-scale, 1))}
+.media-score-card.size-small .score-badge{width:calc(var(--card-w) * 0.2087 * var(--panel-scale, 1));height:calc(var(--card-w) * 0.241 * var(--panel-scale, 1));font-size:calc(var(--card-w) * 0.072 * var(--panel-scale, 1))}
 .media-score-card .score-review{
   color:white;font-weight:800;line-height:1.2;max-width:100%;font-size:calc(var(--card-w) * 0.030 * var(--panel-scale, 1));
   text-shadow:0 3px 10px rgba(0,0,0,.5);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden
@@ -1316,9 +1316,9 @@ button:disabled{opacity:.45;cursor:not-allowed}
     const badge = document.createElement("div");
     badge.className = "score-badge";
     badge.innerHTML = `
-      <svg viewBox="0 0 100 116" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
-        <polygon points="50,2 94,27 94,89 50,114 6,89 6,27" fill="#e01922"/>
-        <text x="50" y="72" text-anchor="middle" fill="white" font-size="48" font-weight="900" font-family="Arial, sans-serif">${temp.score === null || temp.score === "" ? "?" : String(temp.score)}</text>
+      <svg viewBox="0 0 173.205 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <polygon points="86.6025,0 173.205,50 173.205,150 86.6025,200 0,150 0,50" fill="#e01922"/>
+        <text x="86.6025" y="108" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="92" font-weight="900" font-family="Arial, sans-serif">${temp.score === null || temp.score === "" ? "?" : String(temp.score)}</text>
       </svg>
     `;
 
