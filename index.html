@@ -371,10 +371,10 @@ button:disabled{opacity:.45;cursor:not-allowed}
     <div class="panel-head">
       <div>
         <div class="panel-title">搜索 Steam 游戏</div>
-        <div class="panel-sub">返回 Steam 商店横版小图；同一 AppID 不会重复添加</div>
+        <div class="panel-sub">支持游戏名、纯数字 AppID、Steam 商店链接；同一 AppID 不会重复添加</div>
       </div>
       <div class="search-box">
-        <input type="text" id="searchInput" placeholder="例如：Elden Ring / 女神异闻录 / Cyberpunk..." autocomplete="off" />
+        <input type="text" id="searchInput" placeholder="游戏名 / AppID / Steam 商店链接，例如：1245620" autocomplete="off" />
         <label class="auto-search-toggle" title="输入停止约 450ms 后自动搜索">
           <input type="checkbox" id="autoSearchToggle" checked />
           <span>自动搜索</span>
@@ -859,6 +859,44 @@ button:disabled{opacity:.45;cursor:not-allowed}
     throw lastError || new Error("请求失败");
   }
 
+  function extractSteamAppId(input) {
+    const value = String(input || "").trim();
+    if (!value) return null;
+
+    // 纯数字直接视为 Steam AppID。
+    if (/^\d{1,12}$/.test(value)) return value;
+
+    // 常见 Steam 商店链接：/app/123456/xxx 或 /agecheck/app/123456/
+    const urlMatch = value.match(/(?:store\.steampowered\.com\/(?:app|agecheck\/app)\/)(\d+)/i);
+    if (urlMatch) return urlMatch[1];
+
+    // 兼容 steam://store/123456 形式。
+    const steamProtocolMatch = value.match(/^steam:\/\/store\/(\d+)/i);
+    if (steamProtocolMatch) return steamProtocolMatch[1];
+
+    return null;
+  }
+
+  async function lookupSteamApp(appId) {
+    const id = String(appId);
+    const api = "https://store.steampowered.com/api/appdetails?appids="
+      + encodeURIComponent(id)
+      + "&l=schinese&cc=SG";
+
+    const data = await fetchJsonWithFallback(api);
+    const entry = data && data[id];
+    if (!entry || !entry.success || !entry.data) return null;
+
+    const app = entry.data;
+    return {
+      id: Number(id),
+      name: app.name || ("App " + id),
+      tiny_image: app.capsule_imagev5 || app.capsule_image || app.header_image || "",
+      directLookup: true,
+      appType: app.type || ""
+    };
+  }
+
   async function searchSteam(term) {
     term = term.trim();
     if (!term) {
@@ -868,14 +906,28 @@ button:disabled{opacity:.45;cursor:not-allowed}
     }
 
     const mySeq = ++searchSeq;
-    $("#searchStatus").textContent = "正在搜索 Steam…";
+    const directAppId = extractSteamAppId(term);
+    $("#searchStatus").textContent = directAppId
+      ? `正在读取 Steam AppID ${directAppId}…`
+      : "正在搜索 Steam…";
     $("#searchBtn").disabled = true;
 
-    const api = "https://store.steampowered.com/api/storesearch/?term="
-      + encodeURIComponent(term)
-      + "&l=schinese&cc=SG";
-
     try {
+      if (directAppId) {
+        const item = await lookupSteamApp(directAppId);
+        if (mySeq !== searchSeq) return;
+
+        const items = item ? [item] : [];
+        renderSearchResults(items);
+        $("#searchStatus").textContent = item
+          ? `已直接读取 AppID ${directAppId}：${item.name}`
+          : `没有找到 AppID ${directAppId} 对应的 Steam 商店内容`;
+        return;
+      }
+
+      const api = "https://store.steampowered.com/api/storesearch/?term="
+        + encodeURIComponent(term)
+        + "&l=schinese&cc=SG";
       const data = await fetchJsonWithFallback(api);
       if (mySeq !== searchSeq) return;
       const items = Array.isArray(data.items) ? data.items.slice(0, 20) : [];
@@ -886,8 +938,9 @@ button:disabled{opacity:.45;cursor:not-allowed}
     } catch (e) {
       if (mySeq !== searchSeq) return;
       $("#searchResults").innerHTML = "";
-      $("#searchStatus").textContent =
-        "搜索失败：Steam 或浏览器跨域限制阻止了请求。可尝试用本地 HTTP 服务或 GitHub Pages 打开此 HTML。";
+      $("#searchStatus").textContent = directAppId
+        ? `读取 AppID ${directAppId} 失败：可能是 Steam 或跨域代理暂时不可用。`
+        : "搜索失败：Steam 或浏览器跨域限制阻止了请求。可尝试稍后重试。";
       console.warn(e);
     } finally {
       if (mySeq === searchSeq) $("#searchBtn").disabled = false;
@@ -915,7 +968,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
       info.className = "search-info";
       info.innerHTML = `
         <div class="search-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
-        <div class="search-meta">AppID: ${escapeHtml(item.id)}</div>
+        <div class="search-meta">AppID: ${escapeHtml(item.id)}${item.directLookup ? " · 直接读取" : ""}${item.appType ? " · " + escapeHtml(item.appType) : ""}</div>
       `;
 
       const btn = document.createElement("button");
