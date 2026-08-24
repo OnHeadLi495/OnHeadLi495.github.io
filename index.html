@@ -197,6 +197,107 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .export-card img{width:100%;height:100%;object-fit:cover}
 .export-empty{font-size:13px;color:#667483;align-self:center;padding:12px}
 
+@media (max-width:980px){
+  .modal-body{grid-template-columns:1fr}
+}
+
+
+.card-tools{
+  display:none;position:absolute;right:3px;top:3px;gap:4px;z-index:2
+}
+.game-card:hover .card-tools{display:flex}
+.card-mini-btn{
+  width:20px;height:20px;border:0;border-radius:50%;
+  background:rgba(0,0,0,.75);color:#fff;line-height:20px;padding:0;font-size:11px
+}
+
+/* Score modal */
+.modal{
+  position:fixed;inset:0;background:rgba(4,7,12,.74);
+  display:flex;align-items:center;justify-content:center;padding:18px;z-index:9998
+}
+.modal-dialog{
+  width:min(1180px,100%);max-height:92vh;overflow:auto;border:1px solid var(--line);
+  border-radius:14px;background:#121820;box-shadow:0 20px 60px rgba(0,0,0,.45)
+}
+.modal-head,.modal-foot{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)
+}
+.modal-foot{border-bottom:0;border-top:1px solid var(--line);justify-content:flex-end;flex-wrap:wrap}
+.modal-title{font-weight:800}
+.modal-sub{font-size:12px;color:var(--muted);margin-top:4px}
+.modal-close{
+  width:34px;height:34px;border-radius:9px;border:1px solid var(--line);
+  background:#1b2430;color:#fff
+}
+.modal-body{padding:16px;display:grid;grid-template-columns:360px 1fr;gap:18px}
+.form-col{display:flex;flex-direction:column;gap:14px}
+.form-group label{display:block;font-size:12px;color:#cdd6df;margin-bottom:6px;font-weight:700}
+.form-group input[type="number"], .form-group textarea{
+  width:100%;border:1px solid var(--line);background:#0e131a;color:var(--text);
+  border-radius:9px;padding:10px 12px;outline:none
+}
+.form-group textarea{resize:vertical;min-height:88px;line-height:1.5}
+.form-help{font-size:11px;color:var(--muted);margin-top:5px}
+.side-choices{display:flex;gap:14px;flex-wrap:wrap}
+.side-choices label{display:inline-flex;align-items:center;gap:6px;margin:0;font-size:13px}
+.side-choices input{accent-color:var(--accent)}
+.shot-picker{
+  border:1px solid var(--line);background:#0f141c;border-radius:10px;padding:10px;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;max-height:240px;overflow:auto
+}
+.shot-card{border:1px solid #324051;border-radius:8px;padding:5px;background:#111720;cursor:pointer}
+.shot-card.selected{outline:2px solid var(--accent);background:#152130}
+.shot-card img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:5px;background:#26303d}
+.shot-caption{font-size:10px;color:#b4c0cf;margin-top:4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.shot-status{font-size:12px;color:var(--muted);margin-top:6px}
+.preview-shell{display:flex;justify-content:center;align-items:flex-start;overflow:auto;padding:6px;background:#0d1118;border-radius:12px;border:1px solid var(--line)}
+.preview-inner{min-width:0}
+
+/* Media score card */
+.media-score-card{
+  --card-w:560px;width:var(--card-w);height:calc(var(--card-w) * 9 / 16);position:relative;
+  border-radius:14px;overflow:hidden;background:#151a22;border:1px solid #334050;
+  box-shadow:0 10px 30px rgba(0,0,0,.28)
+}
+.media-score-card img.main-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.media-score-card .image-fallback{
+  position:absolute;inset:0;display:none;place-items:center;padding:30px;text-align:center;
+  background:linear-gradient(135deg,#263445,#121821);color:#d7e1ea;font-weight:700
+}
+.media-score-card.bad-img .image-fallback{display:grid}
+.media-score-card.bad-img img.main-image{display:none}
+.media-score-card .score-panel{
+  position:absolute;top:0;bottom:0;width:calc(var(--card-w) * 0.30);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:calc(var(--card-w) * 0.018);padding:calc(var(--card-w) * 0.032);
+  background:linear-gradient(90deg, rgba(0,0,0,.76), rgba(0,0,0,.48) 58%, rgba(0,0,0,0));text-align:center
+}
+.media-score-card.side-right .score-panel{right:0;left:auto;background:linear-gradient(270deg, rgba(0,0,0,.76), rgba(0,0,0,.48) 58%, rgba(0,0,0,0))}
+.media-score-card.side-left .score-panel{left:0}
+.media-score-card .score-badge{
+  background:#e01922;color:white;display:grid;place-items:center;font-weight:900;line-height:1;
+  clip-path:polygon(25% 6%,75% 6%,100% 50%,75% 94%,25% 94%,0 50%);
+  text-shadow:0 2px 6px rgba(0,0,0,.3);box-shadow:0 10px 25px rgba(224,25,34,.35)
+}
+.media-score-card.size-max .score-badge{width:calc(var(--card-w) * 0.19);height:calc(var(--card-w) * 0.17);font-size:calc(var(--card-w) * 0.068)}
+.media-score-card.size-large .score-badge{width:calc(var(--card-w) * 0.165);height:calc(var(--card-w) * 0.147);font-size:calc(var(--card-w) * 0.058)}
+.media-score-card.size-medium .score-badge{width:calc(var(--card-w) * 0.145);height:calc(var(--card-w) * 0.129);font-size:calc(var(--card-w) * 0.052)}
+.media-score-card.size-small .score-badge{width:calc(var(--card-w) * 0.128);height:calc(var(--card-w) * 0.114);font-size:calc(var(--card-w) * 0.046)}
+.media-score-card .score-review{
+  color:white;font-weight:800;line-height:1.22;max-width:100%;font-size:calc(var(--card-w) * 0.023);
+  text-shadow:0 3px 10px rgba(0,0,0,.5);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden
+}
+.media-score-card.size-max .score-review{display:none}
+.media-score-card .title-bar{
+  position:absolute;left:0;right:0;bottom:0;padding:calc(var(--card-w) * 0.042) calc(var(--card-w) * 0.03) calc(var(--card-w) * 0.02);
+  font-size:calc(var(--card-w) * 0.033);font-weight:900;letter-spacing:.3px;color:white;
+  background:linear-gradient(transparent,rgba(0,0,0,.84));text-shadow:0 2px 8px rgba(0,0,0,.5)
+}
+.media-score-card .title-bar small{
+  display:block;margin-top:calc(var(--card-w) * 0.005);font-size:calc(var(--card-w) * 0.0135);font-weight:650;
+  color:rgba(255,255,255,.78)
+}
+
 @media (max-width:720px){
   .app{padding:12px}
   .tier-row{grid-template-columns:112px 1fr}
@@ -278,6 +379,60 @@ button:disabled{opacity:.45;cursor:not-allowed}
   <div class="footer-note">
     数据默认保存在当前浏览器的 localStorage。JSON 导出可用于备份和跨设备迁移。
     PNG 导出只包含标题与各 Tier，不包含搜索区和编辑按钮。
+  </div>
+</div>
+
+
+<div class="modal hidden" id="scoreModal">
+  <div class="modal-dialog">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="scoreModalTitle">评分封面</div>
+        <div class="modal-sub">输入 0~10 整数分数，短评可选；评语越长，六边形会越小</div>
+      </div>
+      <button class="modal-close" id="scoreModalClose" title="关闭">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-col">
+        <div class="form-group">
+          <label for="scoreInput">分数（0~10 整数）</label>
+          <input id="scoreInput" type="number" min="0" max="10" step="1" placeholder="例如：8" />
+          <div class="form-help">留空可以先保存，导出时必须填写合法分数。</div>
+        </div>
+        <div class="form-group">
+          <label for="reviewInput">短评语（可空）</label>
+          <textarea id="reviewInput" maxlength="60" placeholder="例如：值得每一次死亡。"></textarea>
+          <div class="form-help">最多约 60 个字符，显示时最多 3 行；没有短评时六边形最大。</div>
+        </div>
+        <div class="form-group">
+          <label>六边形位置</label>
+          <div class="side-choices">
+            <label><input type="radio" name="scoreSide" value="left"> 左侧</label>
+            <label><input type="radio" name="scoreSide" value="right"> 右侧</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>封面图片</label>
+          <div style="display:flex; gap:8px; flex-wrap:wrap">
+            <button class="btn small" id="useCurrentImageBtn" type="button">使用当前小图</button>
+            <button class="btn small" id="loadShotsBtn" type="button">加载 Steam 宣传图</button>
+          </div>
+          <div class="shot-status" id="shotStatus">当前默认使用游戏现有图片。</div>
+          <div class="shot-picker" id="shotPicker"></div>
+        </div>
+      </div>
+      <div class="form-col">
+        <div class="form-group" style="margin:0">
+          <label>实时预览</label>
+          <div class="preview-shell"><div class="preview-inner" id="scorePreviewWrap"></div></div>
+          <div class="form-help">导出时会使用高清版本生成 PNG。</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="scoreSaveBtn" type="button">保存设置</button>
+      <button class="btn primary" id="scoreExportBtn" type="button">导出评分图 PNG</button>
+    </div>
   </div>
 </div>
 
@@ -731,7 +886,12 @@ button:disabled{opacity:.45;cursor:not-allowed}
         state.games[String(item.id)] = {
           appId: Number(item.id),
           name: item.name,
-          image: item.tiny_image || ""
+          image: item.tiny_image || "",
+          score: null,
+          reviewText: "",
+          scoreSide: "right",
+          heroImage: "",
+          screenshotOptions: []
         };
         state.unranked.push(String(item.id));
         saveState();
@@ -1016,6 +1176,370 @@ button:disabled{opacity:.45;cursor:not-allowed}
       btn.textContent = "导出 PNG";
     }
   });
+
+
+  let scoreModalAppId = null;
+  let scoreModalTemp = null;
+  const screenshotCache = new Map();
+
+  function createGameCard(appId, zoneId) {
+    const g = state.games[String(appId)];
+    if (!g) return null;
+
+    const card = document.createElement("div");
+    card.className = "game-card";
+    card.draggable = true;
+    card.dataset.appId = String(appId);
+    card.dataset.zone = zoneId;
+    card.dataset.name = g.name || ("App " + appId);
+    card.title = `${g.name || "未知游戏"}\nSteam AppID: ${appId}`;
+
+    const img = document.createElement("img");
+    img.src = g.image || "";
+    img.alt = g.name || "";
+    img.loading = "lazy";
+    img.referrerPolicy = "no-referrer";
+    img.crossOrigin = "anonymous";
+    img.onerror = () => card.classList.add("bad-img");
+
+    const fallback = document.createElement("div");
+    fallback.className = "fallback";
+    fallback.textContent = g.name || ("App " + appId);
+
+    const tools = document.createElement("div");
+    tools.className = "card-tools";
+
+    const scoreBtn = document.createElement("button");
+    scoreBtn.className = "card-mini-btn";
+    scoreBtn.type = "button";
+    scoreBtn.textContent = "评";
+    scoreBtn.title = "设置评分封面";
+    scoreBtn.addEventListener("click", e => {
+      e.stopPropagation();
+      openScoreModal(appId);
+    });
+
+    const remove = document.createElement("button");
+    remove.className = "card-mini-btn";
+    remove.type = "button";
+    remove.textContent = "×";
+    remove.title = "从 Tier 表删除";
+    remove.addEventListener("click", e => {
+      e.stopPropagation();
+      if (!confirm(`删除“${g.name}”？`)) return;
+      removeGameFromAllZones(appId);
+      delete state.games[String(appId)];
+      saveState();
+      render();
+    });
+
+    tools.append(scoreBtn, remove);
+    card.append(img, fallback, tools);
+
+    card.addEventListener("dragstart", e => {
+      dragInfo = { appId: String(appId), sourceZone: zoneId };
+      card.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", String(appId));
+    });
+
+    card.addEventListener("dragend", () => {
+      dragInfo = null;
+      clearDragStyles();
+      card.classList.remove("dragging");
+    });
+
+    return card;
+  }
+
+  function getGameScoreImage(game, temp) {
+    return (temp && temp.heroImage) || game.heroImage || game.image || "";
+  }
+
+  function getScoreSizeClass(reviewText) {
+    const txt = String(reviewText || "").trim();
+    if (!txt) return "size-max";
+    if (txt.length <= 16) return "size-large";
+    if (txt.length <= 34) return "size-medium";
+    return "size-small";
+  }
+
+  function createScoreCardElement(game, temp, widthPx = 560) {
+    const root = document.createElement("div");
+    const side = temp.scoreSide === "left" ? "left" : "right";
+    const sizeCls = getScoreSizeClass(temp.reviewText);
+    root.className = `media-score-card side-${side} ${sizeCls}`;
+    root.style.setProperty("--card-w", widthPx + "px");
+
+    const img = document.createElement("img");
+    img.className = "main-image";
+    img.src = getGameScoreImage(game, temp);
+    img.alt = game.name || "";
+    img.crossOrigin = "anonymous";
+    img.referrerPolicy = "no-referrer";
+    img.onerror = () => root.classList.add("bad-img");
+
+    const fallback = document.createElement("div");
+    fallback.className = "image-fallback";
+    fallback.textContent = game.name || "未命名游戏";
+
+    const panel = document.createElement("div");
+    panel.className = "score-panel";
+
+    const badge = document.createElement("div");
+    badge.className = "score-badge";
+    badge.textContent = temp.score === null || temp.score === "" ? "?" : String(temp.score);
+
+    panel.append(badge);
+    if (String(temp.reviewText || "").trim()) {
+      const review = document.createElement("div");
+      review.className = "score-review";
+      review.textContent = String(temp.reviewText || "").trim();
+      panel.append(review);
+    }
+
+    const title = document.createElement("div");
+    title.className = "title-bar";
+    title.innerHTML = `${escapeHtml(game.name || "未命名游戏")}<small>Steam AppID: ${escapeHtml(game.appId)}</small>`;
+
+    root.append(img, fallback, panel, title);
+    return root;
+  }
+
+  function updateScorePreview() {
+    const wrap = $("#scorePreviewWrap");
+    wrap.innerHTML = "";
+    if (!scoreModalAppId || !scoreModalTemp) return;
+    const game = state.games[String(scoreModalAppId)];
+    if (!game) return;
+    wrap.append(createScoreCardElement(game, scoreModalTemp, 560));
+  }
+
+  function renderShotPicker() {
+    const picker = $("#shotPicker");
+    picker.innerHTML = "";
+    if (!scoreModalAppId || !scoreModalTemp) return;
+
+    const game = state.games[String(scoreModalAppId)];
+    const options = [];
+    if (game.image) options.push({ url: game.image, label: "当前小图" });
+    const shots = screenshotCache.get(String(scoreModalAppId)) || game.screenshotOptions || [];
+    shots.forEach((url, idx) => options.push({ url, label: "宣传图 " + (idx + 1) }));
+
+    if (!options.length) {
+      const empty = document.createElement("div");
+      empty.className = "shot-status";
+      empty.textContent = "暂无可选图片。";
+      picker.append(empty);
+      return;
+    }
+
+    options.forEach(opt => {
+      const item = document.createElement("div");
+      item.className = "shot-card" + (((scoreModalTemp.heroImage || game.image) === opt.url) ? " selected" : "");
+
+      const img = document.createElement("img");
+      img.src = opt.url;
+      img.alt = opt.label;
+      img.loading = "lazy";
+      img.referrerPolicy = "no-referrer";
+
+      const cap = document.createElement("div");
+      cap.className = "shot-caption";
+      cap.textContent = opt.label;
+
+      item.append(img, cap);
+      item.addEventListener("click", () => {
+        scoreModalTemp.heroImage = opt.url;
+        renderShotPicker();
+        updateScorePreview();
+      });
+      picker.append(item);
+    });
+  }
+
+  async function loadSteamScreenshotsForGame(appId) {
+    const appIdStr = String(appId);
+    if (screenshotCache.has(appIdStr)) return screenshotCache.get(appIdStr);
+
+    const api = "https://store.steampowered.com/api/appdetails?appids=" + encodeURIComponent(appIdStr) + "&l=schinese&cc=SG";
+    const data = await fetchJsonWithFallback(api);
+    const appData = data && data[appIdStr] && data[appIdStr].data;
+    const screenshots = Array.isArray(appData && appData.screenshots)
+      ? appData.screenshots.map(s => s.path_full || s.path_thumbnail).filter(Boolean)
+      : [];
+
+    screenshotCache.set(appIdStr, screenshots);
+    const game = state.games[appIdStr];
+    if (game) game.screenshotOptions = screenshots.slice(0, 12);
+    saveState();
+    return screenshots;
+  }
+
+  function openScoreModal(appId) {
+    const game = state.games[String(appId)];
+    if (!game) return;
+
+    scoreModalAppId = String(appId);
+    scoreModalTemp = {
+      score: Number.isInteger(game.score) ? game.score : null,
+      reviewText: String(game.reviewText || ""),
+      scoreSide: game.scoreSide === "left" ? "left" : "right",
+      heroImage: game.heroImage || game.image || ""
+    };
+
+    $("#scoreModalTitle").textContent = "评分封面 · " + game.name;
+    $("#scoreInput").value = scoreModalTemp.score === null ? "" : String(scoreModalTemp.score);
+    $("#reviewInput").value = scoreModalTemp.reviewText;
+    document.querySelectorAll('input[name="scoreSide"]').forEach(r => { r.checked = r.value === scoreModalTemp.scoreSide; });
+    $("#shotStatus").textContent = "当前默认使用所选图片。需要更多图时可加载 Steam 宣传图。";
+
+    renderShotPicker();
+    updateScorePreview();
+
+    $("#scoreModal").classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeScoreModal() {
+    $("#scoreModal").classList.add("hidden");
+    document.body.style.overflow = "";
+    scoreModalAppId = null;
+    scoreModalTemp = null;
+  }
+
+  function syncScoreTempFromForm() {
+    if (!scoreModalTemp) return;
+    const raw = $("#scoreInput").value.trim();
+    scoreModalTemp.score = raw === "" ? null : Number(raw);
+    scoreModalTemp.reviewText = $("#reviewInput").value;
+    const checked = document.querySelector('input[name="scoreSide"]:checked');
+    scoreModalTemp.scoreSide = checked ? checked.value : "right";
+  }
+
+  function persistScoreModal() {
+    if (!scoreModalAppId || !scoreModalTemp) return;
+    const game = state.games[String(scoreModalAppId)];
+    if (!game) return;
+    game.score = Number.isInteger(scoreModalTemp.score) ? scoreModalTemp.score : null;
+    game.reviewText = String(scoreModalTemp.reviewText || "");
+    game.scoreSide = scoreModalTemp.scoreSide === "left" ? "left" : "right";
+    game.heroImage = scoreModalTemp.heroImage || game.image || "";
+    saveState();
+  }
+
+  function validateScoreForExport() {
+    syncScoreTempFromForm();
+    const v = scoreModalTemp && scoreModalTemp.score;
+    if (!Number.isInteger(v) || v < 0 || v > 10) {
+      alert("请填写 0~10 的整数分数。");
+      return false;
+    }
+    return true;
+  }
+
+  $("#scoreModalClose").addEventListener("click", closeScoreModal);
+  $("#scoreModal").addEventListener("click", e => { if (e.target.id === "scoreModal") closeScoreModal(); });
+  $("#scoreInput").addEventListener("input", () => { syncScoreTempFromForm(); updateScorePreview(); });
+  $("#reviewInput").addEventListener("input", () => { syncScoreTempFromForm(); updateScorePreview(); });
+  document.querySelectorAll('input[name="scoreSide"]').forEach(r => r.addEventListener("change", () => { syncScoreTempFromForm(); updateScorePreview(); }));
+
+  $("#useCurrentImageBtn").addEventListener("click", () => {
+    if (!scoreModalAppId || !scoreModalTemp) return;
+    const game = state.games[String(scoreModalAppId)];
+    scoreModalTemp.heroImage = game.image || "";
+    $("#shotStatus").textContent = "已切换为当前小图。";
+    renderShotPicker();
+    updateScorePreview();
+  });
+
+  $("#loadShotsBtn").addEventListener("click", async () => {
+    if (!scoreModalAppId) return;
+    const btn = $("#loadShotsBtn");
+    btn.disabled = true;
+    $("#shotStatus").textContent = "正在加载 Steam 宣传图…";
+    try {
+      const shots = await loadSteamScreenshotsForGame(scoreModalAppId);
+      if (!shots.length) {
+        $("#shotStatus").textContent = "没有获取到宣传图，已保留当前图片。";
+      } else {
+        $("#shotStatus").textContent = `已获取 ${shots.length} 张宣传图，点击缩略图即可切换。`;
+        const game = state.games[String(scoreModalAppId)];
+        if (game && !game.heroImage && shots[0]) scoreModalTemp.heroImage = shots[0];
+      }
+      renderShotPicker();
+      updateScorePreview();
+    } catch (e) {
+      console.warn(e);
+      $("#shotStatus").textContent = "加载失败：可能是跨域或 Steam 接口限制。";
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $("#scoreSaveBtn").addEventListener("click", () => {
+    syncScoreTempFromForm();
+    persistScoreModal();
+    render();
+    showToast("评分封面设置已保存", "good");
+  });
+
+  $("#scoreExportBtn").addEventListener("click", async () => {
+    if (typeof html2canvas !== "function") {
+      alert("PNG 导出组件加载失败。请联网后刷新页面再试。");
+      return;
+    }
+    if (!validateScoreForExport()) return;
+
+    persistScoreModal();
+    render();
+    const game = state.games[String(scoreModalAppId)];
+    if (!game) return;
+
+    const btn = $("#scoreExportBtn");
+    btn.disabled = true;
+    btn.textContent = "正在导出…";
+
+    const root = document.createElement("div");
+    root.style.position = "fixed";
+    root.style.left = "-10000px";
+    root.style.top = "0";
+    root.style.zIndex = "-1";
+    root.append(createScoreCardElement(game, scoreModalTemp, 1200));
+    document.body.append(root);
+
+    try {
+      await hydrateImages(root);
+      const canvas = await html2canvas(root.firstElementChild, {
+        backgroundColor: null,
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+        width: 1200,
+        height: 675,
+        windowWidth: 1200,
+        windowHeight: 675
+      });
+
+      canvas.toBlob(blob => {
+        if (!blob) {
+          alert("评分图生成失败。");
+          return;
+        }
+        downloadBlob(blob, safeFilename(game.name + " score") + ".png");
+        showToast("评分图已导出", "good");
+      }, "image/png");
+    } catch (e) {
+      console.error(e);
+      alert("评分图导出失败：" + (e.message || e));
+    } finally {
+      root.remove();
+      btn.disabled = false;
+      btn.textContent = "导出评分图 PNG";
+    }
+  });
+
 
   render();
 })();
