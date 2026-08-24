@@ -1,0 +1,978 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Steam 游戏 Tier List</title>
+
+<!-- 仅用于“导出 PNG”。页面主体仍然是单个 HTML 文件。 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+        integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+
+<style>
+:root{
+  --bg:#0d1016;
+  --panel:#151a22;
+  --panel2:#1b222d;
+  --line:#2b3441;
+  --text:#edf2f7;
+  --muted:#96a2b2;
+  --accent:#66c0f4;
+  --good:#6ee7a8;
+  --danger:#ff6b7a;
+  --card-w: 138px;
+  --card-h: 52px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:
+  radial-gradient(circle at 20% -20%, rgba(102,192,244,.12), transparent 36%),
+  radial-gradient(circle at 100% 0%, rgba(139,92,246,.08), transparent 30%),
+  var(--bg);color:var(--text);font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif}
+button,input{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
+.app{max-width:1440px;margin:0 auto;padding:24px}
+.topbar{
+  display:flex;gap:14px;align-items:center;justify-content:space-between;
+  margin-bottom:18px;flex-wrap:wrap
+}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-badge{
+  width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#1b5b83,#66c0f4);
+  display:grid;place-items:center;font-weight:900;color:white;box-shadow:0 8px 24px rgba(102,192,244,.2)
+}
+.brand h1{font-size:20px;margin:0}
+.brand p{font-size:12px;color:var(--muted);margin:3px 0 0}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap}
+.btn{
+  border:1px solid var(--line);background:#202733;color:var(--text);
+  padding:9px 12px;border-radius:9px;transition:.15s
+}
+.btn:hover{background:#283241;border-color:#3a4657}
+.btn.primary{background:#1d6b97;border-color:#2584b8}
+.btn.primary:hover{background:#237da9}
+.btn.danger{color:#ffafb7}
+.btn.small{padding:6px 8px;border-radius:7px;font-size:12px}
+.hidden{display:none!important}
+
+.panel{
+  border:1px solid var(--line);background:rgba(21,26,34,.92);
+  border-radius:14px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.18)
+}
+.panel-head{
+  display:flex;gap:12px;justify-content:space-between;align-items:center;
+  padding:14px 16px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.018);flex-wrap:wrap
+}
+.panel-title{font-weight:800}
+.panel-sub{font-size:12px;color:var(--muted);margin-top:3px}
+.title-input{
+  width:min(420px,72vw);border:1px solid var(--line);background:#0f141c;color:var(--text);
+  border-radius:8px;padding:8px 10px
+}
+
+/* Tier board */
+#tierBoard{padding:12px}
+.tier-row{
+  display:grid;grid-template-columns:190px 1fr;min-height:76px;
+  border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:9px;background:#10151d
+}
+.tier-row:last-child{margin-bottom:0}
+.tier-side{
+  padding:10px;display:flex;align-items:center;gap:9px;min-width:0;
+  border-right:1px solid rgba(0,0,0,.2)
+}
+.tier-name{
+  width:78px;min-width:0;border:0;background:rgba(0,0,0,.18);color:#fff;
+  font-weight:900;text-align:center;border-radius:7px;padding:8px 5px;outline:none
+}
+.tier-name:focus{box-shadow:0 0 0 2px rgba(255,255,255,.32)}
+.color-input{width:34px;height:34px;border:0;padding:0;background:transparent}
+.row-actions{display:flex;gap:4px;margin-left:auto}
+.icon-btn{
+  width:28px;height:28px;padding:0;border-radius:7px;border:1px solid rgba(0,0,0,.18);
+  background:rgba(0,0,0,.18);color:white
+}
+.icon-btn:hover{background:rgba(0,0,0,.3)}
+.drop-zone{
+  min-height:74px;padding:10px;display:flex;align-content:flex-start;align-items:flex-start;
+  flex-wrap:wrap;gap:7px;position:relative
+}
+.drop-zone.drag-over{outline:2px dashed rgba(102,192,244,.75);outline-offset:-4px;background:rgba(102,192,244,.06)}
+.empty-hint{color:#647181;font-size:12px;align-self:center;padding:6px;pointer-events:none}
+
+/* Game cards */
+.game-card{
+  width:var(--card-w);height:var(--card-h);position:relative;border-radius:6px;
+  overflow:hidden;background:#26303d;border:1px solid #354254;flex:0 0 auto;
+  box-shadow:0 2px 8px rgba(0,0,0,.24);user-select:none;cursor:grab
+}
+.game-card:active{cursor:grabbing}
+.game-card.dragging{opacity:.35}
+.game-card img{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.game-card .fallback{
+  display:none;position:absolute;inset:0;padding:6px;place-items:center;text-align:center;
+  font-size:11px;background:linear-gradient(135deg,#273649,#17202c)
+}
+.game-card.bad-img img{display:none}
+.game-card.bad-img .fallback{display:grid}
+.game-card::after{
+  content:attr(data-name);position:absolute;left:0;right:0;bottom:0;padding:10px 5px 4px;
+  font-size:9px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:linear-gradient(transparent,rgba(0,0,0,.78));opacity:0;transition:.15s
+}
+.game-card:hover::after{opacity:1}
+.game-card .remove{
+  display:none;position:absolute;right:3px;top:3px;width:20px;height:20px;border:0;border-radius:50%;
+  background:rgba(0,0,0,.72);color:#fff;line-height:20px;padding:0
+}
+.game-card:hover .remove{display:block}
+.insert-marker{box-shadow:-4px 0 0 var(--accent)}
+.insert-marker-after{box-shadow:4px 0 0 var(--accent)}
+
+/* Candidate area */
+.candidate-wrap{margin-top:16px}
+#unrankedZone{min-height:86px;background:#10151d}
+.count-pill{
+  display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:22px;padding:0 8px;
+  border-radius:999px;background:#26313f;color:#cbd5df;font-size:12px
+}
+
+/* Search */
+.search-panel{margin-top:16px}
+.search-box{display:flex;gap:8px;flex:1;min-width:min(560px,100%)}
+.search-box input{
+  flex:1;min-width:160px;border:1px solid var(--line);background:#0e131a;color:var(--text);
+  border-radius:9px;padding:10px 12px;outline:none
+}
+.search-box input:focus{border-color:#4f91b6;box-shadow:0 0 0 3px rgba(102,192,244,.08)}
+.search-status{font-size:12px;color:var(--muted)}
+.search-results{
+  padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:9px
+}
+.search-item{
+  display:grid;grid-template-columns:116px 1fr;gap:10px;align-items:center;
+  padding:8px;border:1px solid var(--line);background:#111720;border-radius:9px
+}
+.search-thumb{width:116px;height:44px;border-radius:5px;object-fit:cover;background:#26303d}
+.search-info{min-width:0}
+.search-name{font-size:13px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.search-meta{font-size:11px;color:var(--muted);margin-top:4px}
+.search-add{margin-top:7px;padding:5px 8px;font-size:11px;border-radius:7px}
+.notice{
+  padding:10px 12px;margin:0 12px 12px;border:1px solid #384556;border-radius:9px;
+  color:#aeb9c6;background:#111720;font-size:12px;line-height:1.6
+}
+.notice strong{color:#dbe5ee}
+.footer-note{color:#6f7c8b;font-size:11px;margin:14px 2px 0;line-height:1.55}
+.toast{
+  position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(14px);
+  padding:10px 14px;border-radius:9px;background:#202a36;color:white;border:1px solid #3a4656;
+  opacity:0;pointer-events:none;transition:.2s;z-index:10000;box-shadow:0 10px 30px rgba(0,0,0,.35)
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.good{border-color:#3f7f64}
+.toast.bad{border-color:#8c4650}
+
+/* Export board */
+.export-board{
+  width:1200px;background:#0d1016;color:#edf2f7;padding:24px;font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif
+}
+.export-board h2{margin:0 0 16px;font-size:28px}
+.export-tier{
+  display:grid;grid-template-columns:150px 1fr;min-height:88px;margin-bottom:8px;border-radius:8px;overflow:hidden;
+  background:#121820;border:1px solid #2b3441
+}
+.export-tier-label{display:grid;place-items:center;font-size:26px;font-weight:900;padding:12px;text-align:center}
+.export-tier-games{padding:12px;display:flex;gap:8px;flex-wrap:wrap;align-content:flex-start}
+.export-card{width:160px;height:60px;border-radius:6px;overflow:hidden;background:#26303d;border:1px solid #3a4657}
+.export-card img{width:100%;height:100%;object-fit:cover}
+.export-empty{font-size:13px;color:#667483;align-self:center;padding:12px}
+
+@media (max-width:720px){
+  .app{padding:12px}
+  .tier-row{grid-template-columns:112px 1fr}
+  .tier-side{padding:7px;flex-wrap:wrap;align-content:center}
+  .tier-name{width:64px}
+  .color-input{width:28px;height:28px}
+  .row-actions{width:100%;justify-content:center;margin-left:0}
+  :root{--card-w:112px;--card-h:42px}
+  .search-results{grid-template-columns:1fr}
+  .search-box{width:100%}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-badge">T</div>
+      <div>
+        <h1>Steam 游戏 Tier List</h1>
+        <p>单网页 · 自动保存 · JSON 导入导出 · PNG 导出</p>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button class="btn" id="addTierBtn">＋ 添加 Tier</button>
+      <button class="btn" id="exportJsonBtn">导出 JSON</button>
+      <button class="btn" id="importJsonBtn">导入 JSON</button>
+      <button class="btn primary" id="exportPngBtn">导出 PNG</button>
+      <input class="hidden" id="jsonFileInput" type="file" accept=".json,application/json" />
+    </div>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="panel-title">Tier 表</div>
+        <div class="panel-sub">修改名称/颜色，或直接拖拽游戏到任意 Tier</div>
+      </div>
+      <input class="title-input" id="listTitle" value="我的 Steam 游戏 Tier List" aria-label="Tier 表标题" />
+    </div>
+    <div id="tierBoard"></div>
+  </section>
+
+  <section class="panel candidate-wrap">
+    <div class="panel-head">
+      <div>
+        <span class="panel-title">备选区</span>
+        <span class="count-pill" id="candidateCount">0</span>
+        <div class="panel-sub">搜索到的游戏先加入这里，再拖入 Tier；也可以从 Tier 拖回来</div>
+      </div>
+    </div>
+    <div class="drop-zone" id="unrankedZone" data-zone="unranked"></div>
+  </section>
+
+  <section class="panel search-panel">
+    <div class="panel-head">
+      <div>
+        <div class="panel-title">搜索 Steam 游戏</div>
+        <div class="panel-sub">返回 Steam 商店横版小图；同一 AppID 不会重复添加</div>
+      </div>
+      <div class="search-box">
+        <input id="searchInput" placeholder="例如：Elden Ring / 女神异闻录 / Cyberpunk..." autocomplete="off" />
+        <button class="btn primary" id="searchBtn">搜索</button>
+      </div>
+    </div>
+    <div class="search-status" id="searchStatus" style="padding:10px 12px 0"></div>
+    <div class="search-results" id="searchResults"></div>
+    <div class="notice">
+      <strong>Steam 搜索说明：</strong>
+      页面会先尝试直接访问 Steam；如果浏览器拦截跨域请求，会自动尝试公共 CORS 代理。
+      若你是直接双击打开 HTML 且搜索仍失败，可把这个文件放在任意本地 HTTP 服务或 GitHub Pages 上运行，其他功能不受影响。
+    </div>
+  </section>
+
+  <div class="footer-note">
+    数据默认保存在当前浏览器的 localStorage。JSON 导出可用于备份和跨设备迁移。
+    PNG 导出只包含标题与各 Tier，不包含搜索区和编辑按钮。
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  "use strict";
+
+  const STORAGE_KEY = "steam-tier-single-page-v1";
+  const VERSION = 1;
+  const COLORS = ["#ff7f7f","#ffb36b","#f7dc6f","#82e0aa","#76d7c4","#85c1e9","#bb8fce"];
+
+  const $ = sel => document.querySelector(sel);
+  const uid = () => "tier-" + Math.random().toString(36).slice(2, 10);
+
+  const defaultState = () => ({
+    version: VERSION,
+    title: "我的 Steam 游戏 Tier List",
+    tiers: [
+      { id: uid(), name: "S", color: "#ff7f7f", games: [] },
+      { id: uid(), name: "A", color: "#ffb36b", games: [] },
+      { id: uid(), name: "B", color: "#f7dc6f", games: [] },
+      { id: uid(), name: "C", color: "#82e0aa", games: [] },
+      { id: uid(), name: "D", color: "#85c1e9", games: [] }
+    ],
+    unranked: [],
+    games: {}
+  });
+
+  let state = loadState();
+  let dragInfo = null;
+  let toastTimer = null;
+  let searchTimer = null;
+  let searchSeq = 0;
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return defaultState();
+      const parsed = JSON.parse(raw);
+      if (!parsed || !Array.isArray(parsed.tiers) || !Array.isArray(parsed.unranked) || typeof parsed.games !== "object") {
+        return defaultState();
+      }
+      parsed.title ||= "我的 Steam 游戏 Tier List";
+      return parsed;
+    } catch {
+      return defaultState();
+    }
+  }
+
+  function saveState() {
+    try {
+      state.version = VERSION;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      showToast("自动保存失败：浏览器存储空间可能已满", "bad");
+      console.warn(e);
+    }
+  }
+
+  function showToast(text, type = "") {
+    const el = $("#toast");
+    el.textContent = text;
+    el.className = "toast show" + (type ? " " + type : "");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.className = "toast", 2200);
+  }
+
+  function escapeHtml(text) {
+    return String(text ?? "").replace(/[&<>"']/g, m => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[m]));
+  }
+
+  function getZoneArray(zoneId) {
+    if (zoneId === "unranked") return state.unranked;
+    const tier = state.tiers.find(t => t.id === zoneId);
+    return tier ? tier.games : null;
+  }
+
+  function removeGameFromAllZones(appId) {
+    state.unranked = state.unranked.filter(id => String(id) !== String(appId));
+    for (const tier of state.tiers) {
+      tier.games = tier.games.filter(id => String(id) !== String(appId));
+    }
+  }
+
+  function gameExists(appId) {
+    const id = String(appId);
+    if (state.unranked.some(x => String(x) === id)) return true;
+    return state.tiers.some(t => t.games.some(x => String(x) === id));
+  }
+
+  function createGameCard(appId, zoneId) {
+    const g = state.games[String(appId)];
+    if (!g) return null;
+
+    const card = document.createElement("div");
+    card.className = "game-card";
+    card.draggable = true;
+    card.dataset.appId = String(appId);
+    card.dataset.zone = zoneId;
+    card.dataset.name = g.name || ("App " + appId);
+    card.title = `${g.name || "未知游戏"}\nSteam AppID: ${appId}`;
+
+    const img = document.createElement("img");
+    img.src = g.image || "";
+    img.alt = g.name || "";
+    img.loading = "lazy";
+    img.referrerPolicy = "no-referrer";
+    img.crossOrigin = "anonymous";
+    img.onerror = () => card.classList.add("bad-img");
+
+    const fallback = document.createElement("div");
+    fallback.className = "fallback";
+    fallback.textContent = g.name || ("App " + appId);
+
+    const remove = document.createElement("button");
+    remove.className = "remove";
+    remove.type = "button";
+    remove.textContent = "×";
+    remove.title = "从 Tier 表删除";
+    remove.addEventListener("click", e => {
+      e.stopPropagation();
+      if (!confirm(`删除“${g.name}”？`)) return;
+      removeGameFromAllZones(appId);
+      delete state.games[String(appId)];
+      saveState();
+      render();
+    });
+
+    card.append(img, fallback, remove);
+
+    card.addEventListener("dragstart", e => {
+      dragInfo = { appId: String(appId), sourceZone: zoneId };
+      card.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", String(appId));
+    });
+
+    card.addEventListener("dragend", () => {
+      dragInfo = null;
+      clearDragStyles();
+      card.classList.remove("dragging");
+    });
+
+    return card;
+  }
+
+  function attachZoneDnD(zone) {
+    zone.addEventListener("dragover", e => {
+      if (!dragInfo) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      clearMarkers();
+      zone.classList.add("drag-over");
+
+      const targetCard = e.target.closest(".game-card");
+      if (targetCard && targetCard.parentElement === zone) {
+        const r = targetCard.getBoundingClientRect();
+        if (e.clientX < r.left + r.width / 2) targetCard.classList.add("insert-marker");
+        else targetCard.classList.add("insert-marker-after");
+      }
+    });
+
+    zone.addEventListener("dragleave", e => {
+      if (!zone.contains(e.relatedTarget)) zone.classList.remove("drag-over");
+    });
+
+    zone.addEventListener("drop", e => {
+      if (!dragInfo) return;
+      e.preventDefault();
+
+      const targetZone = zone.dataset.zone;
+      const sourceZone = dragInfo.sourceZone;
+      const appId = dragInfo.appId;
+
+      const sourceArr = getZoneArray(sourceZone);
+      const targetArr = getZoneArray(targetZone);
+      if (!sourceArr || !targetArr) return;
+
+      const oldIndex = sourceArr.findIndex(x => String(x) === String(appId));
+      let targetIndex = targetArr.length;
+
+      const targetCard = e.target.closest(".game-card");
+      if (targetCard && targetCard.parentElement === zone) {
+        const targetId = targetCard.dataset.appId;
+        targetIndex = targetArr.findIndex(x => String(x) === String(targetId));
+        const r = targetCard.getBoundingClientRect();
+        if (e.clientX >= r.left + r.width / 2) targetIndex += 1;
+      }
+
+      if (sourceZone === targetZone && oldIndex >= 0 && oldIndex < targetIndex) {
+        targetIndex -= 1;
+      }
+
+      if (oldIndex >= 0) sourceArr.splice(oldIndex, 1);
+      targetIndex = Math.max(0, Math.min(targetIndex, targetArr.length));
+      targetArr.splice(targetIndex, 0, appId);
+
+      saveState();
+      render();
+      dragInfo = null;
+      clearDragStyles();
+    });
+  }
+
+  function clearMarkers() {
+    document.querySelectorAll(".insert-marker").forEach(el => el.classList.remove("insert-marker"));
+    document.querySelectorAll(".insert-marker-after").forEach(el => el.classList.remove("insert-marker-after"));
+  }
+
+  function clearDragStyles() {
+    document.querySelectorAll(".drag-over").forEach(el => el.classList.remove("drag-over"));
+    clearMarkers();
+  }
+
+  function renderTierBoard() {
+    const board = $("#tierBoard");
+    board.innerHTML = "";
+
+    state.tiers.forEach((tier, idx) => {
+      const row = document.createElement("div");
+      row.className = "tier-row";
+
+      const side = document.createElement("div");
+      side.className = "tier-side";
+      side.style.background = tier.color;
+
+      const name = document.createElement("input");
+      name.className = "tier-name";
+      name.value = tier.name;
+      name.maxLength = 20;
+      name.title = "修改 Tier 名称";
+      name.addEventListener("input", () => {
+        tier.name = name.value;
+        saveState();
+      });
+
+      const color = document.createElement("input");
+      color.className = "color-input";
+      color.type = "color";
+      color.value = tier.color;
+      color.title = "修改颜色";
+      color.addEventListener("input", () => {
+        tier.color = color.value;
+        side.style.background = tier.color;
+        saveState();
+      });
+
+      const actions = document.createElement("div");
+      actions.className = "row-actions";
+
+      const up = document.createElement("button");
+      up.className = "icon-btn";
+      up.textContent = "↑";
+      up.title = "上移";
+      up.disabled = idx === 0;
+      up.onclick = () => {
+        [state.tiers[idx - 1], state.tiers[idx]] = [state.tiers[idx], state.tiers[idx - 1]];
+        saveState(); render();
+      };
+
+      const down = document.createElement("button");
+      down.className = "icon-btn";
+      down.textContent = "↓";
+      down.title = "下移";
+      down.disabled = idx === state.tiers.length - 1;
+      down.onclick = () => {
+        [state.tiers[idx + 1], state.tiers[idx]] = [state.tiers[idx], state.tiers[idx + 1]];
+        saveState(); render();
+      };
+
+      const del = document.createElement("button");
+      del.className = "icon-btn";
+      del.textContent = "×";
+      del.title = "删除 Tier";
+      del.onclick = () => {
+        if (!confirm(`删除 Tier“${tier.name || "未命名"}”？其中游戏会回到备选区。`)) return;
+        state.unranked.push(...tier.games);
+        state.tiers.splice(idx, 1);
+        saveState(); render();
+      };
+
+      actions.append(up, down, del);
+      side.append(name, color, actions);
+
+      const zone = document.createElement("div");
+      zone.className = "drop-zone";
+      zone.dataset.zone = tier.id;
+
+      if (!tier.games.length) {
+        const hint = document.createElement("div");
+        hint.className = "empty-hint";
+        hint.textContent = "拖拽游戏到这里";
+        zone.append(hint);
+      } else {
+        tier.games.forEach(appId => {
+          const card = createGameCard(appId, tier.id);
+          if (card) zone.append(card);
+        });
+      }
+
+      attachZoneDnD(zone);
+      row.append(side, zone);
+      board.append(row);
+    });
+  }
+
+  function renderUnranked() {
+    const zone = $("#unrankedZone");
+    zone.innerHTML = "";
+    $("#candidateCount").textContent = state.unranked.length;
+
+    if (!state.unranked.length) {
+      const hint = document.createElement("div");
+      hint.className = "empty-hint";
+      hint.textContent = "暂无备选游戏。先在下方搜索并添加。";
+      zone.append(hint);
+    } else {
+      state.unranked.forEach(appId => {
+        const card = createGameCard(appId, "unranked");
+        if (card) zone.append(card);
+      });
+    }
+  }
+
+  function render() {
+    $("#listTitle").value = state.title || "";
+    renderTierBoard();
+    renderUnranked();
+    attachZoneDnD($("#unrankedZone"));
+  }
+
+  $("#listTitle").addEventListener("input", e => {
+    state.title = e.target.value;
+    saveState();
+  });
+
+  $("#addTierBtn").addEventListener("click", () => {
+    const i = state.tiers.length;
+    state.tiers.push({
+      id: uid(),
+      name: "Tier " + (i + 1),
+      color: COLORS[i % COLORS.length],
+      games: []
+    });
+    saveState();
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  /* ---------------- Steam search ---------------- */
+
+  async function fetchJsonWithFallback(targetUrl) {
+    const attempts = [
+      async () => fetch(targetUrl, { cache: "no-store" }),
+      async () => fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(targetUrl), { cache: "no-store" }),
+      async () => fetch("https://corsproxy.io/?url=" + encodeURIComponent(targetUrl), { cache: "no-store" })
+    ];
+
+    let lastError = null;
+    for (const attempt of attempts) {
+      try {
+        const res = await attempt();
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const text = await res.text();
+        const data = JSON.parse(text);
+        return data;
+      } catch (e) {
+        lastError = e;
+      }
+    }
+    throw lastError || new Error("请求失败");
+  }
+
+  async function searchSteam(term) {
+    term = term.trim();
+    if (!term) {
+      $("#searchResults").innerHTML = "";
+      $("#searchStatus").textContent = "";
+      return;
+    }
+
+    const mySeq = ++searchSeq;
+    $("#searchStatus").textContent = "正在搜索 Steam…";
+    $("#searchBtn").disabled = true;
+
+    const api = "https://store.steampowered.com/api/storesearch/?term="
+      + encodeURIComponent(term)
+      + "&l=schinese&cc=SG";
+
+    try {
+      const data = await fetchJsonWithFallback(api);
+      if (mySeq !== searchSeq) return;
+      const items = Array.isArray(data.items) ? data.items.slice(0, 20) : [];
+      renderSearchResults(items);
+      $("#searchStatus").textContent = items.length
+        ? `找到 ${items.length} 个候选结果`
+        : "没有找到结果";
+    } catch (e) {
+      if (mySeq !== searchSeq) return;
+      $("#searchResults").innerHTML = "";
+      $("#searchStatus").textContent =
+        "搜索失败：Steam 或浏览器跨域限制阻止了请求。可尝试用本地 HTTP 服务或 GitHub Pages 打开此 HTML。";
+      console.warn(e);
+    } finally {
+      if (mySeq === searchSeq) $("#searchBtn").disabled = false;
+    }
+  }
+
+  function renderSearchResults(items) {
+    const root = $("#searchResults");
+    root.innerHTML = "";
+
+    for (const item of items) {
+      if (!item || !item.id || !item.name) continue;
+
+      const wrap = document.createElement("div");
+      wrap.className = "search-item";
+
+      const img = document.createElement("img");
+      img.className = "search-thumb";
+      img.src = item.tiny_image || "";
+      img.alt = item.name;
+      img.loading = "lazy";
+      img.referrerPolicy = "no-referrer";
+
+      const info = document.createElement("div");
+      info.className = "search-info";
+      info.innerHTML = `
+        <div class="search-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
+        <div class="search-meta">AppID: ${escapeHtml(item.id)}</div>
+      `;
+
+      const btn = document.createElement("button");
+      btn.className = "btn search-add";
+      const exists = gameExists(item.id);
+      btn.textContent = exists ? "已在 Tier 表中" : "＋ 加入备选";
+      btn.disabled = exists;
+
+      btn.addEventListener("click", () => {
+        if (gameExists(item.id)) {
+          showToast("这个游戏已经添加过了");
+          return;
+        }
+        state.games[String(item.id)] = {
+          appId: Number(item.id),
+          name: item.name,
+          image: item.tiny_image || ""
+        };
+        state.unranked.push(String(item.id));
+        saveState();
+        render();
+        btn.textContent = "已在 Tier 表中";
+        btn.disabled = true;
+        showToast(`已加入：${item.name}`, "good");
+      });
+
+      info.append(btn);
+      wrap.append(img, info);
+      root.append(wrap);
+    }
+  }
+
+  $("#searchBtn").addEventListener("click", () => searchSteam($("#searchInput").value));
+  $("#searchInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") searchSteam(e.target.value);
+  });
+  $("#searchInput").addEventListener("input", e => {
+    clearTimeout(searchTimer);
+    const value = e.target.value;
+    searchTimer = setTimeout(() => searchSteam(value), 450);
+  });
+
+  /* ---------------- JSON ---------------- */
+
+  function downloadBlob(blob, filename) {
+    const a = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1200);
+  }
+
+  function safeFilename(s) {
+    return (s || "steam-tier-list")
+      .replace(/[\\/:*?"<>|]+/g, "_")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 80) || "steam-tier-list";
+  }
+
+  $("#exportJsonBtn").addEventListener("click", () => {
+    const exportData = {
+      ...state,
+      version: VERSION,
+      exportedAt: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+      type: "application/json;charset=utf-8"
+    });
+    downloadBlob(blob, safeFilename(state.title) + ".json");
+    showToast("JSON 已导出", "good");
+  });
+
+  $("#importJsonBtn").addEventListener("click", () => $("#jsonFileInput").click());
+
+  $("#jsonFileInput").addEventListener("change", async e => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+
+    try {
+      const parsed = JSON.parse(await file.text());
+      if (!parsed || !Array.isArray(parsed.tiers) || !Array.isArray(parsed.unranked) || typeof parsed.games !== "object") {
+        throw new Error("JSON 结构不正确");
+      }
+
+      for (const tier of parsed.tiers) {
+        if (!tier.id) tier.id = uid();
+        if (!Array.isArray(tier.games)) tier.games = [];
+        tier.name = String(tier.name ?? "Tier");
+        tier.color = /^#[0-9a-f]{6}$/i.test(tier.color || "") ? tier.color : "#6b7280";
+      }
+
+      if (!confirm("导入会覆盖当前 Tier 表，继续吗？")) return;
+
+      state = {
+        version: VERSION,
+        title: String(parsed.title || "我的 Steam 游戏 Tier List"),
+        tiers: parsed.tiers,
+        unranked: parsed.unranked.map(String),
+        games: parsed.games
+      };
+
+      saveState();
+      render();
+      showToast("JSON 导入完成", "good");
+    } catch (err) {
+      alert("导入失败：" + (err.message || err));
+    }
+  });
+
+  /* ---------------- PNG export ---------------- */
+
+  function buildExportBoard() {
+    const root = document.createElement("div");
+    root.className = "export-board";
+    root.style.position = "fixed";
+    root.style.left = "-10000px";
+    root.style.top = "0";
+    root.style.zIndex = "-1";
+
+    const title = document.createElement("h2");
+    title.textContent = state.title || "Steam 游戏 Tier List";
+    root.append(title);
+
+    state.tiers.forEach(tier => {
+      const row = document.createElement("div");
+      row.className = "export-tier";
+
+      const label = document.createElement("div");
+      label.className = "export-tier-label";
+      label.style.background = tier.color;
+      label.textContent = tier.name || "Tier";
+
+      const games = document.createElement("div");
+      games.className = "export-tier-games";
+
+      if (!tier.games.length) {
+        const empty = document.createElement("div");
+        empty.className = "export-empty";
+        empty.textContent = "—";
+        games.append(empty);
+      } else {
+        tier.games.forEach(appId => {
+          const g = state.games[String(appId)];
+          if (!g) return;
+
+          const card = document.createElement("div");
+          card.className = "export-card";
+          card.title = g.name || "";
+
+          const img = document.createElement("img");
+          img.src = g.image || "";
+          img.alt = g.name || "";
+          img.crossOrigin = "anonymous";
+          img.referrerPolicy = "no-referrer";
+          card.append(img);
+          games.append(card);
+        });
+      }
+
+      row.append(label, games);
+      root.append(row);
+    });
+
+    return root;
+  }
+
+  async function blobToDataUrl(blob) {
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async function imageToDataUrl(url) {
+    if (!url || url.startsWith("data:")) return url;
+
+    const attempts = [
+      url,
+      "https://api.allorigins.win/raw?url=" + encodeURIComponent(url)
+    ];
+
+    for (const candidate of attempts) {
+      try {
+        const r = await fetch(candidate, { cache: "force-cache" });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const blob = await r.blob();
+        if (!blob.type.startsWith("image/")) throw new Error("不是图片");
+        return await blobToDataUrl(blob);
+      } catch {}
+    }
+    return url;
+  }
+
+  async function hydrateExportImages(root) {
+    const imgs = [...root.querySelectorAll("img")];
+    const cache = new Map();
+
+    for (let i = 0; i < imgs.length; i++) {
+      const img = imgs[i];
+      const original = img.src;
+      $("#searchStatus").textContent = `正在准备导出图片 ${i + 1}/${imgs.length}…`;
+
+      if (!cache.has(original)) {
+        cache.set(original, await imageToDataUrl(original));
+      }
+      const converted = cache.get(original);
+      if (converted) img.src = converted;
+    }
+
+    await Promise.all(imgs.map(img => {
+      if (img.complete) return Promise.resolve();
+      return new Promise(resolve => {
+        img.onload = resolve;
+        img.onerror = resolve;
+        setTimeout(resolve, 2500);
+      });
+    }));
+  }
+
+  $("#exportPngBtn").addEventListener("click", async () => {
+    if (typeof html2canvas !== "function") {
+      alert("PNG 导出组件加载失败。请联网后刷新页面再试。");
+      return;
+    }
+
+    const btn = $("#exportPngBtn");
+    btn.disabled = true;
+    btn.textContent = "正在导出…";
+
+    const node = buildExportBoard();
+    document.body.appendChild(node);
+
+    try {
+      await hydrateExportImages(node);
+
+      const canvas = await html2canvas(node, {
+        backgroundColor: "#0d1016",
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+        windowWidth: 1200
+      });
+
+      canvas.toBlob(blob => {
+        if (!blob) {
+          alert("PNG 生成失败。可能是远程图片跨域限制导致。");
+          return;
+        }
+        downloadBlob(blob, safeFilename(state.title) + ".png");
+        showToast("PNG 已导出", "good");
+      }, "image/png");
+    } catch (e) {
+      console.error(e);
+      alert("PNG 导出失败：" + (e.message || e));
+    } finally {
+      node.remove();
+      $("#searchStatus").textContent = "";
+      btn.disabled = false;
+      btn.textContent = "导出 PNG";
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
