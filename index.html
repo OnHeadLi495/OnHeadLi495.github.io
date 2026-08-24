@@ -1509,7 +1509,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
     document.body.append(root);
 
     try {
-      await hydrateImages(root);
+      await hydrateExportImages(root);
       const canvas = await html2canvas(root.firstElementChild, {
         backgroundColor: null,
         scale: 2,
