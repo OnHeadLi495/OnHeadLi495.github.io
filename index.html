@@ -141,12 +141,19 @@ button:disabled{opacity:.45;cursor:not-allowed}
 
 /* Search */
 .search-panel{margin-top:16px}
-.search-box{display:flex;gap:8px;flex:1;min-width:min(560px,100%)}
-.search-box input{
+.search-box{display:flex;gap:8px;flex:1;min-width:min(560px,100%);align-items:center;flex-wrap:wrap}
+.search-box input[type="text"]{
   flex:1;min-width:160px;border:1px solid var(--line);background:#0e131a;color:var(--text);
   border-radius:9px;padding:10px 12px;outline:none
 }
-.search-box input:focus{border-color:#4f91b6;box-shadow:0 0 0 3px rgba(102,192,244,.08)}
+.search-box input[type="text"]:focus{border-color:#4f91b6;box-shadow:0 0 0 3px rgba(102,192,244,.08)}
+.auto-search-toggle{
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap;
+  color:#cbd5df;font-size:13px;padding:0 3px
+}
+.auto-search-toggle input{
+  width:17px;height:17px;accent-color:var(--accent);cursor:pointer
+}
 .search-status{font-size:12px;color:var(--muted)}
 .search-results{
   padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:9px
@@ -251,7 +258,11 @@ button:disabled{opacity:.45;cursor:not-allowed}
         <div class="panel-sub">返回 Steam 商店横版小图；同一 AppID 不会重复添加</div>
       </div>
       <div class="search-box">
-        <input id="searchInput" placeholder="例如：Elden Ring / 女神异闻录 / Cyberpunk..." autocomplete="off" />
+        <input type="text" id="searchInput" placeholder="例如：Elden Ring / 女神异闻录 / Cyberpunk..." autocomplete="off" />
+        <label class="auto-search-toggle" title="输入停止约 450ms 后自动搜索">
+          <input type="checkbox" id="autoSearchToggle" checked />
+          <span>自动搜索</span>
+        </label>
         <button class="btn primary" id="searchBtn">搜索</button>
       </div>
     </div>
@@ -294,7 +305,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
       { id: uid(), name: "D", color: "#85c1e9", games: [] }
     ],
     unranked: [],
-    games: {}
+    games: {},
+    autoSearch: true
   });
 
   let state = loadState();
@@ -312,6 +324,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
         return defaultState();
       }
       parsed.title ||= "我的 Steam 游戏 Tier List";
+      if (typeof parsed.autoSearch !== "boolean") parsed.autoSearch = true;
       return parsed;
     } catch {
       return defaultState();
@@ -597,6 +610,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 
   function render() {
     $("#listTitle").value = state.title || "";
+    $("#autoSearchToggle").checked = state.autoSearch !== false;
     renderTierBoard();
     renderUnranked();
     attachZoneDnD($("#unrankedZone"));
@@ -733,14 +747,45 @@ button:disabled{opacity:.45;cursor:not-allowed}
     }
   }
 
-  $("#searchBtn").addEventListener("click", () => searchSteam($("#searchInput").value));
-  $("#searchInput").addEventListener("keydown", e => {
-    if (e.key === "Enter") searchSteam(e.target.value);
+  $("#searchBtn").addEventListener("click", () => {
+    clearTimeout(searchTimer);
+    searchSteam($("#searchInput").value);
   });
+
+  $("#searchInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      clearTimeout(searchTimer);
+      searchSteam(e.target.value);
+    }
+  });
+
   $("#searchInput").addEventListener("input", e => {
     clearTimeout(searchTimer);
     const value = e.target.value;
-    searchTimer = setTimeout(() => searchSteam(value), 450);
+
+    if (state.autoSearch !== false) {
+      searchTimer = setTimeout(() => searchSteam(value), 450);
+    } else {
+      $("#searchStatus").textContent = value.trim()
+        ? "自动搜索已关闭，点击“搜索”按钮或按 Enter 开始搜索。"
+        : "";
+    }
+  });
+
+  $("#autoSearchToggle").addEventListener("change", e => {
+    state.autoSearch = e.target.checked;
+    saveState();
+    clearTimeout(searchTimer);
+
+    const value = $("#searchInput").value.trim();
+    if (state.autoSearch && value) {
+      $("#searchStatus").textContent = "自动搜索已开启。";
+      searchTimer = setTimeout(() => searchSteam(value), 450);
+    } else if (!state.autoSearch && value) {
+      $("#searchStatus").textContent = "自动搜索已关闭，点击“搜索”按钮或按 Enter 开始搜索。";
+    } else {
+      $("#searchStatus").textContent = "";
+    }
   });
 
   /* ---------------- JSON ---------------- */
@@ -804,7 +849,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
         title: String(parsed.title || "我的 Steam 游戏 Tier List"),
         tiers: parsed.tiers,
         unranked: parsed.unranked.map(String),
-        games: parsed.games
+        games: parsed.games,
+        autoSearch: typeof parsed.autoSearch === "boolean" ? parsed.autoSearch : (state.autoSearch !== false)
       };
 
       saveState();
