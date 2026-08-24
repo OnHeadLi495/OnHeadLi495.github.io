@@ -300,6 +300,19 @@ button:disabled{opacity:.45;cursor:not-allowed}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:none
 }
 
+
+.file-drop-overlay{
+  position:fixed;inset:0;z-index:12000;display:grid;place-items:center;
+  background:rgba(5,9,14,.82);backdrop-filter:blur(4px);pointer-events:none
+}
+.file-drop-overlay .drop-card{
+  width:min(520px,calc(100% - 32px));padding:32px;border:2px dashed #66c0f4;
+  border-radius:18px;background:#121a24;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.45)
+}
+.file-drop-overlay .drop-icon{font-size:42px;line-height:1;margin-bottom:10px}
+.file-drop-overlay .drop-title{font-size:20px;font-weight:900}
+.file-drop-overlay .drop-sub{font-size:12px;color:#9eacbc;margin-top:8px;line-height:1.6}
+
 @media (max-width:720px){
   .app{padding:12px}
   .tier-row{grid-template-columns:112px 1fr}
@@ -327,7 +340,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
       <button class="btn" id="addTierBtn">＋ 添加 Tier</button>
       <button class="btn" id="exportJsonBtn">导出 JSON</button>
       <button class="btn" id="importJsonBtn">导入 JSON</button>
-      <button class="btn primary" id="exportPngBtn">导出 PNG</button>
+      <button class="btn primary" id="exportPngBtn">导出可恢复 PNG</button>
       <input class="hidden" id="jsonFileInput" type="file" accept=".json,application/json" />
     </div>
   </div>
@@ -379,7 +392,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
   </section>
 
   <div class="footer-note">
-    数据默认保存在当前浏览器的 localStorage。JSON 导出可用于备份和跨设备迁移。
+    数据默认保存在当前浏览器的 localStorage。JSON 导出可用于备份和跨设备迁移；Tier PNG 本身也会内嵌可恢复数据，可直接拖回网页读取。
     PNG 导出只包含标题与各 Tier，不包含搜索区和编辑按钮。
   </div>
 </div>
@@ -453,6 +466,15 @@ button:disabled{opacity:.45;cursor:not-allowed}
       <button class="btn" id="scoreSaveBtn" type="button">保存设置</button>
       <button class="btn primary" id="scoreExportBtn" type="button">导出评分图 PNG</button>
     </div>
+  </div>
+</div>
+
+
+<div class="file-drop-overlay hidden" id="fileDropOverlay">
+  <div class="drop-card">
+    <div class="drop-icon">⬇</div>
+    <div class="drop-title">拖到这里读取 Tier 数据</div>
+    <div class="drop-sub">支持本工具导出的含数据 PNG，以及 JSON 备份。<br>评分封面 PNG 会导入单个游戏。</div>
   </div>
 </div>
 
@@ -559,7 +581,11 @@ button:disabled{opacity:.45;cursor:not-allowed}
     card.dataset.appId = String(appId);
     card.dataset.zone = zoneId;
     card.dataset.name = g.name || ("App " + appId);
-    card.title = `${g.name || "未知游戏"}\nSteam AppID: ${appId}`;
+    card.title = `${g.name || "未知游戏"}\nSteam AppID: ${appId}\n双击打开 Steam 商店`;
+    card.addEventListener("dblclick", e => {
+      if (e.target.closest && e.target.closest("button")) return;
+      window.open(`https://store.steampowered.com/app/${encodeURIComponent(appId)}/`, "_blank", "noopener,noreferrer");
+    });
 
     const img = document.createElement("img");
     img.src = g.image || "";
@@ -993,6 +1019,242 @@ button:disabled{opacity:.45;cursor:not-allowed}
       .slice(0, 80) || "steam-tier-list";
   }
 
+
+  const PNG_META_KEY = "SteamTierData";
+  const PNG_SIGNATURE = [137,80,78,71,13,10,26,10];
+
+  function uint32be(n) {
+    return new Uint8Array([(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255]);
+  }
+
+  function concatBytes(...parts) {
+    const total = parts.reduce((n, p) => n + p.length, 0);
+    const out = new Uint8Array(total);
+    let offset = 0;
+    for (const p of parts) {
+      out.set(p, offset);
+      offset += p.length;
+    }
+    return out;
+  }
+
+  function crc32(bytes) {
+    let crc = 0xffffffff;
+    for (let i = 0; i < bytes.length; i++) {
+      crc ^= bytes[i];
+      for (let j = 0; j < 8; j++) {
+        crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
+      }
+    }
+    return (crc ^ 0xffffffff) >>> 0;
+  }
+
+  function bytesToBase64(bytes) {
+    let binary = "";
+    const CHUNK = 0x8000;
+    for (let i = 0; i < bytes.length; i += CHUNK) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+    }
+    return btoa(binary);
+  }
+
+  function base64ToBytes(text) {
+    const binary = atob(text);
+    const out = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) out[i] = binary.charCodeAt(i);
+    return out;
+  }
+
+  function makePngTextChunk(keyword, valueAscii) {
+    const encoder = new TextEncoder();
+    const type = encoder.encode("tEXt");
+    const data = concatBytes(
+      encoder.encode(keyword),
+      new Uint8Array([0]),
+      encoder.encode(valueAscii)
+    );
+    const crc = uint32be(crc32(concatBytes(type, data)));
+    return concatBytes(uint32be(data.length), type, data, crc);
+  }
+
+  async function embedPngMetadata(blob, metadata) {
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    if (bytes.length < 12 || !PNG_SIGNATURE.every((v, i) => bytes[i] === v)) {
+      throw new Error("生成结果不是有效 PNG");
+    }
+
+    const jsonBytes = new TextEncoder().encode(JSON.stringify(metadata));
+    const chunk = makePngTextChunk(PNG_META_KEY, bytesToBase64(jsonBytes));
+
+    let pos = 8;
+    let iendPos = -1;
+    while (pos + 12 <= bytes.length) {
+      const view = new DataView(bytes.buffer, bytes.byteOffset + pos, 4);
+      const len = view.getUint32(0);
+      const type = String.fromCharCode(...bytes.subarray(pos + 4, pos + 8));
+      if (type === "IEND") {
+        iendPos = pos;
+        break;
+      }
+      pos += 12 + len;
+    }
+    if (iendPos < 0) throw new Error("PNG 缺少 IEND");
+
+    const out = concatBytes(bytes.subarray(0, iendPos), chunk, bytes.subarray(iendPos));
+    return new Blob([out], { type: "image/png" });
+  }
+
+  async function readPngMetadata(file) {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    if (bytes.length < 12 || !PNG_SIGNATURE.every((v, i) => bytes[i] === v)) return null;
+
+    let pos = 8;
+    while (pos + 12 <= bytes.length) {
+      const len = new DataView(bytes.buffer, bytes.byteOffset + pos, 4).getUint32(0);
+      const type = String.fromCharCode(...bytes.subarray(pos + 4, pos + 8));
+      const dataStart = pos + 8;
+      const dataEnd = dataStart + len;
+      if (dataEnd + 4 > bytes.length) break;
+
+      if (type === "tEXt") {
+        const data = bytes.subarray(dataStart, dataEnd);
+        const zero = data.indexOf(0);
+        if (zero > 0) {
+          const keyword = new TextDecoder("latin1").decode(data.subarray(0, zero));
+          if (keyword === PNG_META_KEY) {
+            const encoded = new TextDecoder("ascii").decode(data.subarray(zero + 1));
+            const json = new TextDecoder().decode(base64ToBytes(encoded));
+            return JSON.parse(json);
+          }
+        }
+      }
+      if (type === "IEND") break;
+      pos = dataEnd + 4;
+    }
+    return null;
+  }
+
+  function canvasToPngBlob(canvas) {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(blob => {
+        if (blob) resolve(blob);
+        else reject(new Error("PNG 生成失败"));
+      }, "image/png");
+    });
+  }
+
+  function makeTierMetadata() {
+    return {
+      format: "steam-tier-png",
+      schema: 1,
+      kind: "tier",
+      createdAt: new Date().toISOString(),
+      payload: {
+        ...state,
+        version: VERSION,
+        exportedAt: new Date().toISOString()
+      }
+    };
+  }
+
+  function makeGameMetadata(game) {
+    return {
+      format: "steam-tier-png",
+      schema: 1,
+      kind: "game",
+      createdAt: new Date().toISOString(),
+      payload: JSON.parse(JSON.stringify(game))
+    };
+  }
+
+  function validateTierPayload(parsed) {
+    return parsed &&
+      Array.isArray(parsed.tiers) &&
+      Array.isArray(parsed.unranked) &&
+      parsed.games &&
+      typeof parsed.games === "object";
+  }
+
+  function applyTierPayload(parsed, sourceName = "文件") {
+    if (!validateTierPayload(parsed)) throw new Error("Tier 数据结构不正确");
+
+    for (const tier of parsed.tiers) {
+      if (!tier.id) tier.id = uid();
+      if (!Array.isArray(tier.games)) tier.games = [];
+      tier.games = tier.games.map(String);
+      tier.name = String(tier.name ?? "Tier");
+      tier.color = /^#[0-9a-f]{6}$/i.test(tier.color || "") ? tier.color : "#6b7280";
+    }
+
+    state = {
+      ...parsed,
+      version: VERSION,
+      title: String(parsed.title || "我的 Steam 游戏 Tier List"),
+      tiers: parsed.tiers,
+      unranked: parsed.unranked.map(String),
+      games: parsed.games,
+      autoSearch: typeof parsed.autoSearch === "boolean" ? parsed.autoSearch : (state.autoSearch !== false)
+    };
+    saveState();
+    render();
+    showToast(`已从${sourceName}恢复 Tier 表`, "good");
+  }
+
+  function importGamePayload(game, sourceName = "评分图片") {
+    if (!game || game.appId === undefined || game.appId === null) {
+      throw new Error("单游戏数据缺少 AppID");
+    }
+    const id = String(game.appId);
+    const old = state.games[id] || {};
+    state.games[id] = { ...old, ...game, appId: Number(game.appId) };
+
+    if (!gameExists(id)) state.unranked.push(id);
+    saveState();
+    render();
+    showToast(`已从${sourceName}导入：${state.games[id].name || id}`, "good");
+  }
+
+  async function handleImportedMetadata(meta, sourceName) {
+    if (!meta || meta.format !== "steam-tier-png") {
+      throw new Error("图片中没有找到本工具的可恢复数据");
+    }
+
+    if (meta.kind === "tier") {
+      if (!confirm(`检测到 Tier 表数据。\\n\\n从“${sourceName}”恢复会覆盖当前 Tier 表，继续吗？`)) return;
+      applyTierPayload(meta.payload, "图片");
+      return;
+    }
+
+    if (meta.kind === "game") {
+      importGamePayload(meta.payload, "评分图片");
+      return;
+    }
+
+    throw new Error("图片中的数据类型无法识别");
+  }
+
+  async function handleDroppedFiles(files) {
+    for (const file of files) {
+      try {
+        const lower = file.name.toLowerCase();
+        if (file.type === "image/png" || lower.endsWith(".png")) {
+          const meta = await readPngMetadata(file);
+          if (!meta) throw new Error("这张 PNG 没有内嵌 Tier 数据");
+          await handleImportedMetadata(meta, file.name);
+        } else if (file.type === "application/json" || lower.endsWith(".json")) {
+          const parsed = JSON.parse(await file.text());
+          if (!confirm(`从“${file.name}”导入会覆盖当前 Tier 表，继续吗？`)) continue;
+          applyTierPayload(parsed, "JSON");
+        } else {
+          throw new Error("只支持 PNG 或 JSON");
+        }
+      } catch (err) {
+        console.warn(err);
+        showToast(`${file.name}：${err.message || err}`, "bad");
+      }
+    }
+  }
+
   $("#exportJsonBtn").addEventListener("click", () => {
     const exportData = {
       ...state,
@@ -1015,31 +1277,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
 
     try {
       const parsed = JSON.parse(await file.text());
-      if (!parsed || !Array.isArray(parsed.tiers) || !Array.isArray(parsed.unranked) || typeof parsed.games !== "object") {
-        throw new Error("JSON 结构不正确");
-      }
-
-      for (const tier of parsed.tiers) {
-        if (!tier.id) tier.id = uid();
-        if (!Array.isArray(tier.games)) tier.games = [];
-        tier.name = String(tier.name ?? "Tier");
-        tier.color = /^#[0-9a-f]{6}$/i.test(tier.color || "") ? tier.color : "#6b7280";
-      }
-
       if (!confirm("导入会覆盖当前 Tier 表，继续吗？")) return;
-
-      state = {
-        version: VERSION,
-        title: String(parsed.title || "我的 Steam 游戏 Tier List"),
-        tiers: parsed.tiers,
-        unranked: parsed.unranked.map(String),
-        games: parsed.games,
-        autoSearch: typeof parsed.autoSearch === "boolean" ? parsed.autoSearch : (state.autoSearch !== false)
-      };
-
-      saveState();
-      render();
-      showToast("JSON 导入完成", "good");
+      applyTierPayload(parsed, "JSON");
     } catch (err) {
       alert("导入失败：" + (err.message || err));
     }
@@ -1182,14 +1421,10 @@ button:disabled{opacity:.45;cursor:not-allowed}
         windowWidth: 1200
       });
 
-      canvas.toBlob(blob => {
-        if (!blob) {
-          alert("PNG 生成失败。可能是远程图片跨域限制导致。");
-          return;
-        }
-        downloadBlob(blob, safeFilename(state.title) + ".png");
-        showToast("PNG 已导出", "good");
-      }, "image/png");
+      const rawBlob = await canvasToPngBlob(canvas);
+      const dataPng = await embedPngMetadata(rawBlob, makeTierMetadata());
+      downloadBlob(dataPng, safeFilename(state.title) + ".png");
+      showToast("PNG 已导出，并已内嵌可恢复数据", "good");
     } catch (e) {
       console.error(e);
       alert("PNG 导出失败：" + (e.message || e));
@@ -1197,7 +1432,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
       node.remove();
       $("#searchStatus").textContent = "";
       btn.disabled = false;
-      btn.textContent = "导出 PNG";
+      btn.textContent = "导出可恢复 PNG";
     }
   });
 
@@ -1216,7 +1451,11 @@ button:disabled{opacity:.45;cursor:not-allowed}
     card.dataset.appId = String(appId);
     card.dataset.zone = zoneId;
     card.dataset.name = g.name || ("App " + appId);
-    card.title = `${g.name || "未知游戏"}\nSteam AppID: ${appId}`;
+    card.title = `${g.name || "未知游戏"}\nSteam AppID: ${appId}\n双击打开 Steam 商店`;
+    card.addEventListener("dblclick", e => {
+      if (e.target.closest && e.target.closest("button")) return;
+      window.open(`https://store.steampowered.com/app/${encodeURIComponent(appId)}/`, "_blank", "noopener,noreferrer");
+    });
 
     const img = document.createElement("img");
     img.src = g.image || "";
@@ -1585,14 +1824,10 @@ button:disabled{opacity:.45;cursor:not-allowed}
         windowHeight: 675
       });
 
-      canvas.toBlob(blob => {
-        if (!blob) {
-          alert("评分图生成失败。");
-          return;
-        }
-        downloadBlob(blob, safeFilename(game.name + " score") + ".png");
-        showToast("评分图已导出", "good");
-      }, "image/png");
+      const rawBlob = await canvasToPngBlob(canvas);
+      const dataPng = await embedPngMetadata(rawBlob, makeGameMetadata(game));
+      downloadBlob(dataPng, safeFilename(game.name + " score") + ".png");
+      showToast("评分图已导出，并已内嵌游戏数据", "good");
     } catch (e) {
       console.error(e);
       alert("评分图导出失败：" + (e.message || e));
@@ -1601,6 +1836,36 @@ button:disabled{opacity:.45;cursor:not-allowed}
       btn.disabled = false;
       btn.textContent = "导出评分图 PNG";
     }
+  });
+
+
+  let fileDragDepth = 0;
+
+  window.addEventListener("dragenter", e => {
+    if (!e.dataTransfer || !Array.from(e.dataTransfer.types || []).includes("Files")) return;
+    e.preventDefault();
+    fileDragDepth++;
+    $("#fileDropOverlay").classList.remove("hidden");
+  });
+
+  window.addEventListener("dragover", e => {
+    if (!e.dataTransfer || !Array.from(e.dataTransfer.types || []).includes("Files")) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+  });
+
+  window.addEventListener("dragleave", e => {
+    if (!e.dataTransfer || !Array.from(e.dataTransfer.types || []).includes("Files")) return;
+    fileDragDepth = Math.max(0, fileDragDepth - 1);
+    if (fileDragDepth === 0) $("#fileDropOverlay").classList.add("hidden");
+  });
+
+  window.addEventListener("drop", async e => {
+    if (!e.dataTransfer || !e.dataTransfer.files || !e.dataTransfer.files.length) return;
+    e.preventDefault();
+    fileDragDepth = 0;
+    $("#fileDropOverlay").classList.add("hidden");
+    await handleDroppedFiles(Array.from(e.dataTransfer.files));
   });
 
 
